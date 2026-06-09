@@ -6,6 +6,19 @@ cd "$(dirname "$0")"
 APP="DripWriter.app"
 SDK="$(xcrun --sdk macosx --show-sdk-path)"
 
+# Generate the app icon (AppIcon.icns) from make-icon.swift if it's missing.
+if [ ! -f AppIcon.icns ]; then
+    echo "→ Generating app icon…"
+    swiftc -swift-version 5 -sdk "$SDK" -framework Cocoa make-icon.swift -o build/mkicon
+    build/mkicon build/icon_1024.png
+    SET=build/DripWriter.iconset; rm -rf "$SET"; mkdir -p "$SET"
+    for s in 16 32 128 256 512; do
+        sips -z "$s" "$s" build/icon_1024.png --out "$SET/icon_${s}x${s}.png" >/dev/null
+        sips -z "$((s*2))" "$((s*2))" build/icon_1024.png --out "$SET/icon_${s}x${s}@2x.png" >/dev/null
+    done
+    iconutil -c icns "$SET" -o AppIcon.icns
+fi
+
 echo "→ Compiling…"
 swiftc -O -swift-version 5 \
     -sdk "$SDK" \
@@ -18,6 +31,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp build/DripWriter "$APP/Contents/MacOS/DripWriter"
 cp Info.plist "$APP/Contents/Info.plist"
+cp AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
 echo "→ Signing (ad-hoc)…"
 codesign --force --deep --sign - "$APP"
