@@ -12,8 +12,9 @@ Paste text, click any field, and it types like a person — drifting speed, paus
 [![AppKit](https://img.shields.io/badge/UI-AppKit-1D4ED8)](#)
 [![No deps](https://img.shields.io/badge/dependencies-none-22c55e)](#)
 [![License: MIT](https://img.shields.io/badge/license-MIT-60A5FA)](LICENSE)
+[![Download](https://img.shields.io/github/v/release/NatePearson/DripWriter?color=3B82F6&label=download&logo=apple&logoColor=white)](https://github.com/NatePearson/DripWriter/releases/latest)
 
-### → [**View the landing page**](https://natepearson.github.io/DripWriter/) ←
+### ⬇ [**Download for macOS**](https://github.com/NatePearson/DripWriter/releases/latest/download/DripWriter.zip)  ·  [**Landing page**](https://natepearson.github.io/DripWriter/)
 
 </div>
 
@@ -59,7 +60,16 @@ It's a single native app — **no Python, no runtime, no dependencies** — buil
 | `⌘Z` | Undo (including a Humanize pass) |
 | `ESC` | Stop typing |
 
-## Install & build
+## Download (prebuilt)
+
+Grab the latest **[DripWriter.zip](https://github.com/NatePearson/DripWriter/releases/latest/download/DripWriter.zip)**,
+unzip it, and move **DripWriter.app** to Applications. Requires **macOS 13+ on Apple Silicon**.
+
+Because it's open-source and not notarized by Apple, the first launch needs one step — **right-click → Open → Open**
+(or System Settings → Privacy & Security → **Open Anyway**, or
+`xattr -dr com.apple.quarantine /Applications/DripWriter.app`). Then grant Accessibility when prompted.
+
+## Install & build (from source)
 
 Requires the Xcode Command Line Tools (`xcode-select --install`).
 
