@@ -5,6 +5,8 @@ cd "$(dirname "$0")"
 
 APP="DripWriter.app"
 SDK="$(xcrun --sdk macosx --show-sdk-path)"
+DEPLOY="13.0"   # minimum macOS
+mkdir -p build
 
 # Generate the app icon (AppIcon.icns) from make-icon.swift if it's missing.
 if [ ! -f AppIcon.icns ]; then
@@ -19,12 +21,13 @@ if [ ! -f AppIcon.icns ]; then
     iconutil -c icns "$SET" -o AppIcon.icns
 fi
 
-echo "→ Compiling…"
-swiftc -O -swift-version 5 \
-    -sdk "$SDK" \
-    -framework Cocoa \
-    Sources/*.swift \
-    -o build/DripWriter
+echo "→ Compiling universal binary (arm64 + x86_64)…"
+swiftc -O -swift-version 5 -sdk "$SDK" -target "arm64-apple-macosx$DEPLOY" \
+    -framework Cocoa Sources/*.swift -o build/DripWriter-arm64
+swiftc -O -swift-version 5 -sdk "$SDK" -target "x86_64-apple-macosx$DEPLOY" \
+    -framework Cocoa Sources/*.swift -o build/DripWriter-x86_64
+lipo -create build/DripWriter-arm64 build/DripWriter-x86_64 -output build/DripWriter
+echo "  $(lipo -archs build/DripWriter)"
 
 echo "→ Assembling app bundle…"
 rm -rf "$APP"

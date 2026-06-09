@@ -63,7 +63,7 @@ It's a single native app — **no Python, no runtime, no dependencies** — buil
 ## Download (prebuilt)
 
 Grab the latest **[DripWriter.zip](https://github.com/NatePearson/DripWriter/releases/latest/download/DripWriter.zip)**,
-unzip it, and move **DripWriter.app** to Applications. Requires **macOS 13+ on Apple Silicon**.
+unzip it, and move **DripWriter.app** to Applications. Requires **macOS 13+** — universal (Intel & Apple Silicon).
 
 Because it's open-source and not notarized by Apple, the first launch needs one step — **right-click → Open → Open**
 (or System Settings → Privacy & Security → **Open Anyway**, or
