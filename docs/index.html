@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DripWriter — human, variable-speed auto-typing for macOS</title>
+<meta name="description" content="A native macOS app that types text into any field like a real person: drifting speed, pauses, fatigue, self-corrected typos, and a one-click Humanize pass.">
+<style>
+  :root{
+    --bg0:#05080F; --bg1:#0B1830; --surface:#0E1628; --surfaceHi:#17223C;
+    --editor:#131F39; --border:#1E2A44; --borderHi:#334155;
+    --text:#F1F5F9; --muted:#8FA3C0; --blue:#3B82F6; --blueBright:#60A5FA; --blueDeep:#1D4ED8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    color:var(--text); background:var(--bg0);
+    background-image:radial-gradient(1100px 600px at 15% -5%, rgba(59,130,246,.18), transparent 60%),
+                     linear-gradient(180deg,#0A1426 0%, #05080F 60%);
+    background-attachment:fixed; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--blueBright);text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .brand{font-weight:800;font-size:20px;letter-spacing:-.3px}
+  .brand .dot{color:var(--blueBright)}
+  .btn{display:inline-block;padding:11px 20px;border-radius:11px;font-weight:600;font-size:15px;transition:.18s}
+  .btn-primary{background:linear-gradient(180deg,var(--blue),var(--blueDeep));color:#fff;box-shadow:0 8px 24px rgba(59,130,246,.35)}
+  .btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .btn-ghost{border:1px solid rgba(96,165,250,.5);color:var(--blueBright)}
+  .btn-ghost:hover{background:var(--surfaceHi)}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center;padding:48px 0 30px}
+  .hero h1{font-size:54px;line-height:1.05;letter-spacing:-1.5px;font-weight:800}
+  .hero h1 .grad{background:linear-gradient(90deg,#93C5FD,#3B82F6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.lead{color:var(--muted);font-size:18px;margin:18px 0 26px;max-width:520px}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+  .chip{font-size:13px;color:#9DC0FF;border:1px solid rgba(59,130,246,.45);background:#0E1628;padding:6px 12px;border-radius:999px}
+
+  /* app window mock */
+  .win{background:linear-gradient(180deg,#0C1730,#070C18);border:1px solid var(--border);border-radius:18px;
+       box-shadow:0 30px 70px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.02) inset;overflow:hidden}
+  .win .bar{display:flex;gap:8px;padding:14px 16px}
+  .win .bar i{width:12px;height:12px;border-radius:50%;display:block}
+  .dot-r{background:#FF5F57}.dot-y{background:#FEBC2E}.dot-g{background:#28C840}
+  .win .body{padding:6px 22px 22px}
+  .win h3{font-size:24px;font-weight:800;margin-bottom:4px}
+  .win .sub{color:var(--muted);font-size:12.5px;margin-bottom:16px}
+  .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .lbl{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.4px}
+  .minibtns{display:flex;gap:8px}
+  .mb{font-size:12px;font-weight:600;color:var(--blueBright);border:1px solid rgba(96,165,250,.5);border-radius:8px;padding:5px 11px}
+  .editor{background:var(--editor);border:1.5px solid var(--borderHi);border-radius:12px;min-height:96px;padding:13px 15px;color:#5E6F8C;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;margin-bottom:16px}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px 16px;margin-bottom:14px}
+  .modes{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .modes .mname{color:var(--text);font-size:13px;width:54px}
+  .seg{display:flex;gap:7px;flex:1}
+  .seg .s{flex:1;text-align:center;font-size:12.5px;font-weight:600;padding:7px 0;border-radius:9px;border:1px solid rgba(96,165,250,.5);color:var(--blueBright)}
+  .seg .s.on{background:linear-gradient(180deg,var(--blue),var(--blueDeep));border-color:transparent;color:#fff}
+  .ctl{display:grid;grid-template-columns:78px 1fr 74px;align-items:center;gap:12px;margin:11px 0}
+  .ctl .n{font-size:13px}.ctl .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--blueBright);font-size:12px;font-weight:600}
+  .track{height:5px;border-radius:3px;background:#2A354D;position:relative}
+  .track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--blue)}
+  .track .knob{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .tog{display:flex;align-items:center;gap:12px;margin:10px 0;font-size:13px}
+  .pill{width:44px;height:25px;border-radius:13px;background:var(--blue);position:relative;flex:none;border:1px solid rgba(96,165,250,.5)}
+  .pill::after{content:"";position:absolute;right:3px;top:3px;width:19px;height:19px;border-radius:50%;background:#fff}
+  .start{display:block;text-align:center;font-weight:700;color:#fff;padding:15px;border-radius:12px;background:linear-gradient(180deg,var(--blue),var(--blueDeep));box-shadow:0 10px 26px rgba(59,130,246,.4);margin-top:4px}
+  .status{color:var(--muted);font-size:12px;margin-top:12px}
+
+  /* sections */
+  section{padding:46px 0}
+  h2{font-size:30px;font-weight:800;letter-spacing:-.6px;margin-bottom:8px;text-align:center}
+  .sub2{color:var(--muted);text-align:center;margin-bottom:34px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px}
+  .card h3{font-size:17px;margin-bottom:6px}
+  .card p{color:var(--muted);font-size:14px}
+  .card .ic{width:38px;height:38px;border-radius:10px;background:linear-gradient(180deg,rgba(59,130,246,.25),rgba(29,78,216,.15));border:1px solid rgba(96,165,250,.4);display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:18px}
+
+  .modegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .mcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;text-align:center}
+  .mcard.feat{border-color:rgba(96,165,250,.55);box-shadow:0 0 0 1px rgba(59,130,246,.25),0 14px 40px rgba(59,130,246,.18)}
+  .mcard .tag{font-size:12px;color:var(--blueBright);font-weight:700;letter-spacing:.5px}
+  .mcard .big{font-size:22px;font-weight:800;margin:6px 0}
+  .mcard p{color:var(--muted);font-size:13.5px}
+
+  .demo{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px;max-width:860px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .demo .col{padding:18px 20px}
+  .demo .h{font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:10px}
+  .demo .before .h{color:#FCA5A5}.demo .after .h{color:#86EFAC}
+  .demo .col.after{background:var(--editor);border-radius:12px}
+  .demo p{font-size:14px;line-height:1.7}
+  .demo del{color:#8FA3C0;text-decoration-color:#EF4444}
+
+  pre{background:#0A1120;border:1px solid var(--border);border-radius:12px;padding:16px 18px;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;color:#C7D3E6}
+  .kbd{display:inline-block;background:#0E1628;border:1px solid var(--borderHi);border-bottom-width:2px;border-radius:6px;padding:1px 8px;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#DCE6F5}
+  .kbds{max-width:560px;margin:0 auto}
+  .kbds .row2{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid var(--border)}
+  .kbds .row2 span{color:var(--muted);font-size:14px}
+  footer{text-align:center;color:var(--muted);font-size:14px;padding:40px 0 60px;border-top:1px solid var(--border);margin-top:30px}
+
+  @media(max-width:860px){
+    .hero{grid-template-columns:1fr;gap:32px}.hero h1{font-size:40px}
+    .grid,.modegrid{grid-template-columns:1fr}.demo{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <div class="brand">Drip<span class="dot">Writer</span></div>
+    <a class="btn btn-ghost" href="https://github.com/NatePearson/DripWriter">GitHub ↗</a>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div>
+      <h1>Type like a <span class="grad">human</span>,<br>not a robot.</h1>
+      <p class="lead">DripWriter drips your text into any field with drifting, variable speed,
+        natural pauses, fatigue, and the occasional typo it fixes — plus a one-click
+        pass that strips AI writing tells. Native macOS. Zero dependencies.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/NatePearson/DripWriter">Get it on GitHub</a>
+        <a class="btn btn-ghost" href="https://github.com/NatePearson/DripWriter#install--build">How to build</a>
+      </div>
+      <div class="chips">
+        <span class="chip">Variable WPM</span>
+        <span class="chip">Self-correcting typos</span>
+        <span class="chip">Humanize pass</span>
+        <span class="chip">Max Human mode</span>
+        <span class="chip">Compact mode</span>
+      </div>
+    </div>
+
+    <!-- App window recreation -->
+    <div class="win">
+      <div class="bar"><i class="dot-r"></i><i class="dot-y"></i><i class="dot-g"></i></div>
+      <div class="body">
+        <h3>DripWriter</h3>
+        <div class="sub">Drips text into any field with human, variable-speed typing.</div>
+        <div class="row">
+          <span class="lbl">YOUR TEXT</span>
+          <span class="minibtns"><span class="mb">Compact</span><span class="mb">✨ Humanize</span></span>
+        </div>
+        <div class="editor">Paste or type the text you want dripped in…</div>
+        <div class="panel">
+          <div class="modes">
+            <span class="mname">Mode</span>
+            <span class="seg"><span class="s">Steady</span><span class="s on">Natural</span><span class="s">Max Human</span></span>
+          </div>
+          <div class="ctl"><span class="n">Min speed</span><span class="track"><span class="fill" style="width:22%"></span><span class="knob" style="left:22%"></span></span><span class="v"></span></div>
+          <div class="ctl"><span class="n">Max speed</span><span class="track"><span class="fill" style="width:52%"></span><span class="knob" style="left:52%"></span></span><span class="v">35–75 wpm</span></div>
+          <div class="ctl"><span class="n">Mistakes</span><span class="track"><span class="fill" style="width:25%"></span><span class="knob" style="left:25%"></span></span><span class="v">3%</span></div>
+          <div class="ctl"><span class="n">Start delay</span><span class="track"><span class="fill" style="width:28%"></span><span class="knob" style="left:28%"></span></span><span class="v">4 s</span></div>
+          <div class="tog"><span class="pill"></span> Human rhythm, pauses &amp; typos</div>
+          <div class="tog"><span class="pill"></span> Treat new lines as the Return key</div>
+        </div>
+        <div class="start">Start typing</div>
+        <div class="status">Mode: Natural — balanced human typing.</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <h2>Built to read as human</h2>
+    <p class="sub2">Every detail is tuned to look like someone actually typing.</p>
+    <div class="grid">
+      <div class="card"><div class="ic">📈</div><h3>Variable speed</h3><p>Your pace is a random walk between Min and Max WPM — never a constant rate. Inconsistency is the point.</p></div>
+      <div class="card"><div class="ic">⌫</div><h3>Typos it fixes</h3><p>Adjacent-key slips, doubled letters, transpositions, and corrections noticed a few letters late.</p></div>
+      <div class="card"><div class="ic">⏸</div><h3>Pauses &amp; fatigue</h3><p>Longer beats after sentences, thinking pauses mid-flow, and a gentle slowdown over long passages.</p></div>
+      <div class="card"><div class="ic">✨</div><h3>Humanize</h3><p>One click strips AI tells: em dashes, filler, hedging, copulas, chatbot artifacts, curly quotes.</p></div>
+      <div class="card"><div class="ic">🗜️</div><h3>Compact mode</h3><p>Collapse to a tiny typer that stays out of your way. <span class="kbd">⌘K</span> to toggle.</p></div>
+      <div class="card"><div class="ic">⌨️</div><h3>Native &amp; fast</h3><p>A single AppKit app. No Python, no Electron, no dependencies. Types via the system input layer.</p></div>
+    </div>
+  </section>
+
+  <!-- MODES -->
+  <section id="modes">
+    <h2>Three modes</h2>
+    <p class="sub2">From robotic-clean to as-human-as-it-gets.</p>
+    <div class="modegrid">
+      <div class="mcard"><div class="tag">⌘1</div><div class="big">Steady</div><p>Constant speed, no drift, no typos. When you want it clean and predictable.</p></div>
+      <div class="mcard"><div class="tag">⌘2</div><div class="big">Natural</div><p>35–75 wpm, 3% mistakes. Balanced everyday human typing. The default.</p></div>
+      <div class="mcard feat"><div class="tag">⌘3 · MOST HUMAN</div><div class="big">Max Human</div><p>15–110 wpm, 7% mistakes, re-reading pauses and false-start restarts. The works.</p></div>
+    </div>
+  </section>
+
+  <!-- HUMANIZE DEMO -->
+  <section id="humanize">
+    <h2>The Humanize pass</h2>
+    <p class="sub2">Deterministic, offline cleanup — a native port of blader/humanizer.</p>
+    <div class="demo">
+      <div class="col before"><div class="h">BEFORE</div>
+        <p><del>Honestly,</del> this is a testament to our team. <del>In order to</del> succeed, we <del>utilize</del> cutting-edge tools <del>—</del> and <del>it's important to note that</del> we <del>leverage</del> data. <del>Additionally,</del> the platform <del>serves as</del> a hub that <del>boasts a</del> vibrant community. <del>I hope this helps!</del></p>
+      </div>
+      <div class="col after"><div class="h">AFTER</div>
+        <p>This is a testament to our team. To succeed, we use cutting-edge tools, and we use data. Also, the platform is a hub that has a vibrant community.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section id="install">
+    <h2>Install</h2>
+    <p class="sub2">Requires the Xcode Command Line Tools.</p>
+    <pre>git clone https://github.com/NatePearson/DripWriter.git
+cd DripWriter
+./build.sh        # compiles + assembles + signs DripWriter.app
+open DripWriter.app</pre>
+    <p class="sub2" style="margin-top:18px">Then grant Accessibility once (System Settings → Privacy &amp; Security → Accessibility) — the app auto-detects it.</p>
+  </section>
+
+  <!-- SHORTCUTS -->
+  <section id="shortcuts">
+    <h2>Keyboard shortcuts</h2>
+    <div class="kbds" style="margin-top:18px">
+      <div class="row2"><span>Steady / Natural / Max Human</span><span><span class="kbd">⌘1</span> <span class="kbd">⌘2</span> <span class="kbd">⌘3</span></span></div>
+      <div class="row2"><span>Toggle Compact / Expand</span><span class="kbd">⌘K</span></div>
+      <div class="row2"><span>Humanize the text</span><span class="kbd">⌘⇧H</span></div>
+      <div class="row2"><span>Undo (incl. a Humanize pass)</span><span class="kbd">⌘Z</span></div>
+      <div class="row2"><span>Stop typing</span><span class="kbd">ESC</span></div>
+    </div>
+  </section>
+
+  <footer>
+    Built with AppKit · No dependencies · <a href="https://github.com/NatePearson/DripWriter">github.com/NatePearson/DripWriter</a><br>
+    MIT © 2026 Nate Pearson · Humanize ruleset ported from
+    <a href="https://github.com/blader/humanizer">blader/humanizer</a>
+  </footer>
+
+</div>
+</body>
+</html>
