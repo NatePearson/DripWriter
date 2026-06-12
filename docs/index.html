@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DripWriter — human, variable-speed auto-typing for macOS</title>
+<title>DripWriter · human, variable-speed auto-typing for macOS</title>
 <meta name="description" content="A native macOS app that types text into any field like a real person: drifting speed, pauses, fatigue, self-corrected typos, and a one-click Humanize pass.">
 <style>
   :root{
@@ -120,10 +120,10 @@
   <!-- HERO -->
   <header class="hero">
     <div>
-      <h1>Type like a <span class="grad">human</span>,<br>not a robot.</h1>
+      <h1>Auto-typing that<br>reads as <span class="grad">human</span>.</h1>
       <p class="lead">DripWriter drips your text into any field with drifting, variable speed,
-        natural pauses, fatigue, and the occasional typo it fixes — plus a one-click
-        pass that strips AI writing tells. Native macOS. Zero dependencies.</p>
+        natural pauses, fatigue, and the occasional typo it fixes. It also has a one-click
+        pass that strips AI writing tells. Native macOS, zero dependencies.</p>
       <div class="cta">
         <a class="btn btn-primary" href="https://github.com/NatePearson/DripWriter/releases/latest/download/DripWriter.zip">⬇ Download for macOS</a>
         <a class="btn btn-ghost" href="https://github.com/NatePearson/DripWriter">View on GitHub</a>
@@ -170,9 +170,9 @@
   <!-- FEATURES -->
   <section id="features">
     <h2>Built to read as human</h2>
-    <p class="sub2">Every detail is tuned to look like someone actually typing.</p>
+    <p class="sub2">Small details, all aimed at looking like a person typed it.</p>
     <div class="grid">
-      <div class="card"><div class="ic">📈</div><h3>Variable speed</h3><p>Your pace is a random walk between Min and Max WPM — never a constant rate. Inconsistency is the point.</p></div>
+      <div class="card"><div class="ic">📈</div><h3>Variable speed</h3><p>Your pace is a random walk between Min and Max WPM, never a constant rate. Inconsistency is the point.</p></div>
       <div class="card"><div class="ic">⌫</div><h3>Typos it fixes</h3><p>Adjacent-key slips, doubled letters, transpositions, and corrections noticed a few letters late.</p></div>
       <div class="card"><div class="ic">⏸</div><h3>Pauses &amp; fatigue</h3><p>Longer beats after sentences, thinking pauses mid-flow, and a gentle slowdown over long passages.</p></div>
       <div class="card"><div class="ic">✨</div><h3>Humanize</h3><p>One click strips AI tells: em dashes, filler, hedging, copulas, chatbot artifacts, curly quotes.</p></div>
@@ -184,18 +184,18 @@
   <!-- MODES -->
   <section id="modes">
     <h2>Three modes</h2>
-    <p class="sub2">From robotic-clean to as-human-as-it-gets.</p>
+    <p class="sub2">From clean and robotic to as human as it gets.</p>
     <div class="modegrid">
       <div class="mcard"><div class="tag">⌘1</div><div class="big">Steady</div><p>Constant speed, no drift, no typos. When you want it clean and predictable.</p></div>
       <div class="mcard"><div class="tag">⌘2</div><div class="big">Natural</div><p>35–75 wpm, 3% mistakes. Balanced everyday human typing. The default.</p></div>
-      <div class="mcard feat"><div class="tag">⌘3 · MOST HUMAN</div><div class="big">Max Human</div><p>15–110 wpm, 7% mistakes, planning pauses — and it <strong>drafts then goes back to edit</strong>. The works.</p></div>
+      <div class="mcard feat"><div class="tag">⌘3 · MOST HUMAN</div><div class="big">Max Human</div><p>15–110 wpm, 7% mistakes, planning pauses, and it <strong>drafts then goes back to edit</strong>. The works.</p></div>
     </div>
   </section>
 
   <!-- DRAFT & REVISE -->
   <section id="revise">
     <h2>It drafts, then goes back to edit</h2>
-    <p class="sub2">Like a real person: rough draft first, then re-read and fix. Grounded in keystroke-logging writing research (bursts, 2 s+ planning pauses, revision pauses).</p>
+    <p class="sub2">A real person drafts first, then re-reads and fixes. Same here. It's grounded in keystroke-logging writing research on bursts, planning pauses (2 s+), and revision pauses.</p>
     <pre>Draft:  "The fat sat on the mat, and it was y⌫happy. thd⌫e end."
         typed "fat", fixed bits inline, left "the end" lowercase
         ·  [←×7]  ·  ⌫T      re-read, cursor back, "the" → "The"
@@ -208,7 +208,7 @@ Result: "The cat sat on the mat, and it was happy. The end."   ✓</pre>
   <!-- HUMANIZE DEMO -->
   <section id="humanize">
     <h2>The Humanize pass</h2>
-    <p class="sub2">Deterministic, offline cleanup — a native port of blader/humanizer.</p>
+    <p class="sub2">Deterministic, offline cleanup. A native port of blader/humanizer.</p>
     <div class="demo">
       <div class="col before"><div class="h">BEFORE</div>
         <p><del>Honestly,</del> this is a testament to our team. <del>In order to</del> succeed, we <del>utilize</del> cutting-edge tools <del>—</del> and <del>it's important to note that</del> we <del>leverage</del> data. <del>Additionally,</del> the platform <del>serves as</del> a hub that <del>boasts a</del> vibrant community. <del>I hope this helps!</del></p>
@@ -223,12 +223,12 @@ Result: "The cat sat on the mat, and it was happy. The end."   ✓</pre>
   <section id="install">
     <h2>Install</h2>
     <p class="sub2"><a href="https://github.com/NatePearson/DripWriter/releases/latest/download/DripWriter.zip">Download the prebuilt app</a>
-      (unzip, right-click → Open the first time) — or build from source:</p>
+      (unzip, then right-click → Open the first time). Or build from source:</p>
     <pre>git clone https://github.com/NatePearson/DripWriter.git
 cd DripWriter
 ./build.sh        # compiles + assembles + signs DripWriter.app
 open DripWriter.app</pre>
-    <p class="sub2" style="margin-top:18px">Then grant Accessibility once (System Settings → Privacy &amp; Security → Accessibility) — the app auto-detects it.</p>
+    <p class="sub2" style="margin-top:18px">Then grant Accessibility once in System Settings → Privacy &amp; Security → Accessibility. The app auto-detects it.</p>
   </section>
 
   <!-- SHORTCUTS -->

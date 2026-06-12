@@ -5,7 +5,7 @@
 # DripWriter
 
 **Human, variable-speed auto-typing for macOS.**
-Paste text, click any field, and it types like a person — drifting speed, pauses, fatigue, and self-corrected typos.
+Paste text, click any field, and it types like a person: drifting speed, pauses, fatigue, and typos it fixes.
 
 [![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-0b1830?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![Swift](https://img.shields.io/badge/Swift-5-3B82F6?logo=swift&logoColor=white)](https://swift.org)
@@ -22,55 +22,56 @@ Paste text, click any field, and it types like a person — drifting speed, paus
 
 ## What it is
 
-DripWriter "drips" text into the field you choose — a LinkedIn box, a doc, an email, a form —
-typing it the way a human actually does: the pace **wanders** between a min and max (it's never a
-constant robotic rate), it pauses at punctuation, slows down as it "tires," and occasionally makes a
-typo and fixes it. A built-in **Humanize** pass strips common AI writing tells before you send.
+DripWriter "drips" text into whatever field you pick: a LinkedIn box, a doc, an email, a form. It
+types the way people actually type. The pace **wanders** between a min and max instead of holding one
+robotic rate, it pauses at punctuation, slows down as it "tires," and every so often makes a typo and
+fixes it. A built-in **Humanize** pass strips common AI writing tells before you send.
 
-It's a single native app — **no Python, no runtime, no dependencies** — built with AppKit.
+One native AppKit app. No Python, no runtime, no dependencies.
 
 ## Features
 
-- **Variable-WPM engine** — speed is a random walk between your Min/Max sliders (with mean-reversion
-  and occasional bursts). Inconsistent on purpose; that's what reads as human.
-- **Self-correcting typos** — adjacent-key slips, doubled letters, transpositions, and
+- **Variable-WPM engine.** Speed is a random walk between your Min/Max sliders, with mean-reversion
+  and the odd burst. Inconsistent on purpose; that's what reads as human.
+- **Self-correcting typos.** Adjacent-key slips, doubled letters, transpositions, and
   "noticed-three-letters-later" corrections, all with believable backspacing.
-- **Draft, then revise** — instead of typing perfectly top-to-bottom, it leaves small
-  imperfections in the draft (a lowercase sentence-start, a mistyped word, a dropped comma),
-  then **arrows back** to each one, fixes it, and returns to the end — like a real person
-  re-reading and editing. The final text still matches your input exactly.
-- **Three modes** — **Steady** (constant, clean), **Natural** (balanced), **Max Human** (the works).
-- **✨ Humanize button** — an offline, rule-based port of the deterministic half of
-  [blader/humanizer](https://github.com/blader/humanizer): dashes → commas, filler & hedging cuts,
+- **Draft, then revise.** Instead of typing perfectly top to bottom, it leaves small imperfections in
+  the draft (a lowercase sentence-start, a mistyped word, a dropped comma), then arrows back to each
+  one, fixes it, and returns to the end, the way a person re-reads. The final text still matches your
+  input exactly.
+- **Three modes.** Steady (constant, clean), Natural (balanced), Max Human (the works).
+- **✨ Humanize button.** An offline, rule-based port of the deterministic half of
+  [blader/humanizer](https://github.com/blader/humanizer): dashes to commas, filler and hedging cuts,
   copula fixes, AI-vocab swaps, chatbot-artifact removal, curly-quote/emoji/bold cleanup.
-- **Compact mode** — collapse to a tiny typer that stays out of the way.
+- **Compact mode.** Collapse to a tiny typer that stays out of the way.
 - **Keyboard shortcuts**, a blue/black OLED-dark UI, and **ESC** to stop instantly.
 
 ## Modes
 
 | Mode | Speed range | Mistakes | Feel |
 |------|-------------|----------|------|
-| **Steady** | constant | 0% | Clean, robotic — no drift or typos |
+| **Steady** | constant | 0% | Clean and robotic. No drift or typos |
 | **Natural** | 35–75 wpm | 3% | Balanced everyday human typing |
-| **Max Human** | 15–110 wpm | 7% | Huge speed swings + **draft-then-revise**: re-reads, arrows back to fix typos / capitalization / punctuation, planning pauses |
+| **Max Human** | 15–110 wpm | 7% | Big speed swings plus **draft-then-revise**: re-reads, arrows back to fix typos, capitalization, and punctuation, with planning pauses |
 
 ## How it types like a human
 
-Grounded in keystroke-logging writing research: real typing comes in **bursts** separated by
-pauses, with the longest pauses (often **2 s+**) at sentence boundaries for *planning*, and
-shorter, more frequent pauses during *revision*. Gaps under ~200 ms are motor, not cognitive.
+This is grounded in keystroke-logging writing research. Real typing comes in **bursts** separated by
+pauses. The longest pauses (often **2 s+**) land at sentence boundaries, where people stop to plan;
+shorter, more frequent ones show up during revision. Gaps under ~200 ms are motor, not thinking.
 
-So beyond varying speed, **Max Human / draft-then-revise** writes a rough draft and then goes back
-to edit it. A real keystroke trace from the planner (`→`/`←` = cursor, `⌫` = delete, `·` = pause):
+So the engine does more than vary speed. In **Max Human / draft-then-revise** it writes a rough draft,
+then goes back to edit. Here's a real keystroke trace from the planner (`→`/`←` = cursor, `⌫` = delete,
+`·` = pause):
 
 ```
 The fat sat on the mat, and it was y⌫happy. thd⌫e end.·[←×7]·⌫T·[←×38]·⌫c·[→×45]
   → "The cat sat on the mat, and it was happy. The end."
 ```
 
-It typed "fat" (left wrong), fixed "happy"/"the" inline, left "the end" lowercase — then re-read,
-arrowed back to capitalize "The", went further back to fix "cat", and returned to the end. The
-final text always equals your input (verified across 7,200 randomized runs).
+It typed "fat" (left wrong), fixed "happy" and "the" inline, and left "the end" lowercase. Then it
+re-read, arrowed back to capitalize "The," went further back to fix "cat," and returned to the end.
+The final text always equals your input. I checked that across 7,200 randomized runs.
 
 ## Keyboard shortcuts
 
@@ -85,9 +86,9 @@ final text always equals your input (verified across 7,200 randomized runs).
 ## Download (prebuilt)
 
 Grab the latest **[DripWriter.zip](https://github.com/NatePearson/DripWriter/releases/latest/download/DripWriter.zip)**,
-unzip it, and move **DripWriter.app** to Applications. Requires **macOS 13+** — universal (Intel & Apple Silicon).
+unzip it, and move **DripWriter.app** to Applications. It needs **macOS 13+** and runs universal (Intel and Apple Silicon).
 
-Because it's open-source and not notarized by Apple, the first launch needs one step — **right-click → Open → Open**
+It's open-source and not notarized by Apple, so the first launch takes one step: **right-click → Open → Open**
 (or System Settings → Privacy & Security → **Open Anyway**, or
 `xattr -dr com.apple.quarantine /Applications/DripWriter.app`). Then grant Accessibility when prompted.
 
@@ -105,16 +106,16 @@ open DripWriter.app
 ### Grant Accessibility (one time)
 DripWriter sends keystrokes to other apps, so macOS requires Accessibility permission.
 
-1. Press **Start typing** once — it opens the right settings pane for you.
+1. Press **Start typing** once. It opens the right settings pane for you.
 2. **System Settings → Privacy & Security → Accessibility → switch DripWriter ON**.
-3. It **auto-detects** the grant — no restart, no repeated prompts.
+3. It **auto-detects** the grant, so there's no restart and no repeated prompts.
 
 > Rebuilding changes the ad-hoc signature, so you may need to re-enable it.
 > Clear a stale entry with `tccutil reset Accessibility com.natep.dripwriter`.
 
 ## How the Humanize pass works
 
-It performs only the **deterministic** fixes that are safe without changing meaning:
+It does only the **deterministic** fixes that are safe without changing meaning:
 
 - em/en dashes → commas (number ranges kept as hyphens)
 - filler ("in order to" → "to", "it is important to note that" → cut)
@@ -124,21 +125,22 @@ It performs only the **deterministic** fixes that are safe without changing mean
 - signposting & chatbot artifacts ("Let's dive in", "I hope this helps!") → cut
 - curly quotes → straight, emojis removed, **bold** markdown unwrapped, sentences re-capitalized
 
-It deliberately does **not** attempt semantic rewrites (significance inflation, vague attributions,
-rule-of-three, etc.) — those need a real LLM. Use it as a fast first pass, then read it over.
+It does **not** attempt semantic rewrites (significance inflation, vague attributions, rule-of-three,
+and the like). Those need a real LLM. Use it as a fast first pass, then read it over.
 
 ## Good to know
 
-- **Won't work in password fields** or some hardened apps (they reject synthetic keystrokes by design).
-  Normal text fields, browsers, docs, and chat boxes are fine.
-- If you run **Grammarly Desktop**, it may try to "correct" the deliberate typos in your target field —
-  pause it while drip-typing if the output looks off.
+- **Won't work in password fields** or some hardened apps, which reject synthetic keystrokes by
+  design. Normal text fields, browsers, docs, and chat boxes are fine.
+- If you run **Grammarly Desktop**, it may try to "correct" the deliberate typos in your target field.
+  Pause it while drip-typing if the output looks off.
 
 ## Project layout
 
 ```
 Sources/main.swift       UI + variable-WPM typing engine + custom AppKit views
-Sources/Humanizer.swift  the Humanize ruleset (independently testable)
+Sources/Planner.swift    keystroke planner (draft + revise), independently testable
+Sources/Humanizer.swift  the Humanize ruleset
 build.sh                 compile + bundle + ad-hoc sign
 docs/                    GitHub Pages landing page
 ```
