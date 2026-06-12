@@ -35,6 +35,10 @@ It's a single native app — **no Python, no runtime, no dependencies** — buil
   and occasional bursts). Inconsistent on purpose; that's what reads as human.
 - **Self-correcting typos** — adjacent-key slips, doubled letters, transpositions, and
   "noticed-three-letters-later" corrections, all with believable backspacing.
+- **Draft, then revise** — instead of typing perfectly top-to-bottom, it leaves small
+  imperfections in the draft (a lowercase sentence-start, a mistyped word, a dropped comma),
+  then **arrows back** to each one, fixes it, and returns to the end — like a real person
+  re-reading and editing. The final text still matches your input exactly.
 - **Three modes** — **Steady** (constant, clean), **Natural** (balanced), **Max Human** (the works).
 - **✨ Humanize button** — an offline, rule-based port of the deterministic half of
   [blader/humanizer](https://github.com/blader/humanizer): dashes → commas, filler & hedging cuts,
@@ -48,7 +52,25 @@ It's a single native app — **no Python, no runtime, no dependencies** — buil
 |------|-------------|----------|------|
 | **Steady** | constant | 0% | Clean, robotic — no drift or typos |
 | **Natural** | 35–75 wpm | 3% | Balanced everyday human typing |
-| **Max Human** | 15–110 wpm | 7% | Huge speed swings, re-reading pauses, false-start restarts, more typos |
+| **Max Human** | 15–110 wpm | 7% | Huge speed swings + **draft-then-revise**: re-reads, arrows back to fix typos / capitalization / punctuation, planning pauses |
+
+## How it types like a human
+
+Grounded in keystroke-logging writing research: real typing comes in **bursts** separated by
+pauses, with the longest pauses (often **2 s+**) at sentence boundaries for *planning*, and
+shorter, more frequent pauses during *revision*. Gaps under ~200 ms are motor, not cognitive.
+
+So beyond varying speed, **Max Human / draft-then-revise** writes a rough draft and then goes back
+to edit it. A real keystroke trace from the planner (`→`/`←` = cursor, `⌫` = delete, `·` = pause):
+
+```
+The fat sat on the mat, and it was y⌫happy. thd⌫e end.·[←×7]·⌫T·[←×38]·⌫c·[→×45]
+  → "The cat sat on the mat, and it was happy. The end."
+```
+
+It typed "fat" (left wrong), fixed "happy"/"the" inline, left "the end" lowercase — then re-read,
+arrowed back to capitalize "The", went further back to fix "cat", and returned to the end. The
+final text always equals your input (verified across 7,200 randomized runs).
 
 ## Keyboard shortcuts
 
