@@ -81,6 +81,7 @@ The final text always equals your input. I checked that across 7,200 randomized 
 | Shortcut | Action |
 |----------|--------|
 | `⌘1` / `⌘2` / `⌘3` | Steady / Natural / Max Human |
+| `⌘⌥P` | Pause / resume typing (or click the DripWriter window to pause) |
 | `⌘K` | Toggle Compact / Expand |
 | `⌘⇧H` | Humanize the text |
 | `⌘Z` | Undo (including a Humanize pass) |

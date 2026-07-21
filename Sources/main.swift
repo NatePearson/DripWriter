@@ -36,6 +36,18 @@ private let kEscape: UInt16        = 53
 
 // MARK: - Humanizer lives in Humanizer.swift
 
+// Normalize text for reliable typing: unify line-break variants to \n, turn tabs into spaces
+// (a real Tab keypress can jump focus out of the target field), and fix odd Word spaces.
+func normalizeForTyping(_ input: String) -> String {
+    var t = input
+    t = t.replacingOccurrences(of: "\r\n", with: "\n")
+    t = t.replacingOccurrences(of: "\r", with: "\n")
+    for u in ["\u{000B}", "\u{000C}", "\u{2028}", "\u{2029}", "\u{0085}"] { t = t.replacingOccurrences(of: u, with: "\n") }
+    t = t.replacingOccurrences(of: "\t", with: "    ")
+    for u in ["\u{00A0}", "\u{2007}", "\u{202F}", "\u{2009}", "\u{200A}"] { t = t.replacingOccurrences(of: u, with: " ") }
+    return t
+}
+
 // MARK: - Atomic flag
 
 final class Atomic {
@@ -63,11 +75,15 @@ final class TypingEngine {
 
     private let queue = DispatchQueue(label: "com.natep.dripwriter.typing")
     private let running = Atomic(false)
+    private let paused = Atomic(false)
     private let source = CGEventSource(stateID: .hidSystemState)
     private let ownBundleID = Bundle.main.bundleIdentifier
 
     var isRunning: Bool { running.get }
     func stop() { running.set(false) }
+    func pause() { paused.set(true) }
+    func resume() { paused.set(false) }
+    var isPaused: Bool { paused.get }
 
     func start(text: String) {
         guard !text.isEmpty else { onFinished?(true); return }
@@ -76,6 +92,7 @@ final class TypingEngine {
         s.humanize = humanize; s.maxHuman = maxHuman; s.revise = revise
         let ops = Planner(target: text, settings: s).plan()
         guard !ops.isEmpty else { onFinished?(true); return }
+        paused.set(false)
         running.set(true)
         queue.async { [weak self] in
             guard let self = self else { return }
@@ -137,10 +154,16 @@ final class TypingEngine {
         var lastPct = -1
         for (k, op) in ops.enumerated() {
             if !isRunning { return false }
-            if k % 12 == 0 {
-                while isRunning && frontmostIsSelf() {
-                    DispatchQueue.main.async { self.onStatus?("Paused — click your target field…") }
-                    Thread.sleep(forTimeInterval: 0.25)
+            // Explicit pause (⌘⌥P) — checked every keystroke so it stops instantly.
+            while isRunning && paused.get {
+                DispatchQueue.main.async { self.onStatus?("⏸  Paused — ⌘⌥P to resume, ESC to stop.") }
+                Thread.sleep(forTimeInterval: 0.12)
+            }
+            // Auto-pause while our own window is frontmost (click DripWriter to pause).
+            if k % 4 == 0 {
+                while isRunning && !paused.get && frontmostIsSelf() {
+                    DispatchQueue.main.async { self.onStatus?("⏸  Paused — click your text field to resume.") }
+                    Thread.sleep(forTimeInterval: 0.15)
                 }
             }
             if !isRunning { return false }
@@ -594,7 +617,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         beginCountdown()
     }
     func beginCountdown() {
-        let text = textView.string
+        let text = normalizeForTyping(textView.string)
         if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { setStatus("Paste some text first."); return }
         syncLabels()
         state = .counting
@@ -611,9 +634,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     func beginTyping(_ text: String) {
         state = .typing
-        setStatus("Typing…  (ESC to stop)")
+        setStatus("Typing…  (⌘⌥P pause · ESC stop)")
         if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == Bundle.main.bundleIdentifier { didHide = true; NSApp.hide(nil) }
-        engine.onProgress = { [weak self] p in self?.progress.doubleValue = p * 100; self?.setStatus("Typing… \(Int(p * 100))%  (ESC to stop)") }
+        engine.onProgress = { [weak self] p in self?.progress.doubleValue = p * 100; self?.setStatus("Typing… \(Int(p * 100))%  (⌘⌥P pause · ESC stop)") }
         engine.onStatus = { [weak self] s in self?.setStatus(s) }
         engine.onFinished = { [weak self] done in self?.finishTyping(completed: done) }
         engine.start(text: text)
@@ -647,6 +670,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             text = extractText(from: url)   // .docx / .doc / .rtf / .html via textutil
         }
+        text = normalizeForTyping(text)
         if text.isEmpty { setStatus("Couldn't read \(url.lastPathComponent)."); return }
         if let ts = textView.textStorage {
             let full = NSRange(location: 0, length: ts.length)
@@ -671,11 +695,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func installEscMonitors() {
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] e in
             if e.keyCode == kEscape { DispatchQueue.main.async { self?.stopOrCancel() } }
+            else if self?.isPauseHotkey(e) == true { DispatchQueue.main.async { self?.togglePause() } }
         }
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in
             if e.keyCode == kEscape { self?.stopOrCancel(); return nil }
+            if self?.isPauseHotkey(e) == true { self?.togglePause(); return nil }
             return e
         }
+    }
+    private func isPauseHotkey(_ e: NSEvent) -> Bool {
+        let m = e.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        return e.keyCode == 35 && m.contains(.command) && m.contains(.option)   // ⌘⌥P
+    }
+    @objc func togglePause() {
+        guard state == .typing else { return }
+        if engine.isPaused { engine.resume(); setStatus("Resumed…  (⌘⌥P pause · ESC stop)") }
+        else { engine.pause(); setStatus("⏸  Paused — ⌘⌥P to resume, ESC to stop.") }
     }
 
     func requestAccessibility() {
