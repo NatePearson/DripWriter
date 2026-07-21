@@ -221,19 +221,23 @@ final class Planner {
 
         // Process from the end backwards so earlier indices stay valid as we edit.
         for r in revs.sorted(by: { $0.index > $1.index }) {
-            let navTarget: Int
             switch r.kind {
-            case .insert: navTarget = r.index
-            default:      navTarget = r.index + 1
-            }
-            navigate(to: navTarget)
-            emit(.noop, max(0.15, gaussian(0.5, 0.25)))   // found the spot
-            switch r.kind {
-            case .capitalize(let correct), .replace(let correct):
-                emit(.backspace, max(0.05, gaussian(0.14, 0.06)))
-                emit(.ch(correct), max(0.08, gaussian(0.18, 0.07)))
             case .insert(let ch):
-                emit(.ch(ch), max(0.08, gaussian(0.18, 0.07)))
+                navigate(to: r.index)
+                emit(.noop, max(0.15, gaussian(0.5, 0.25)))       // found the spot
+                emit(.ch(ch), max(0.08, gaussian(0.18, 0.07)))    // add the missing character
+            case .capitalize(let correct), .replace(let correct):
+                // Delete the whole wrong word and retype it correctly — a visible, real fix.
+                let i = r.index
+                var ws = i; while ws > 0 && model.chars[ws - 1].isLetter { ws -= 1 }
+                var we = i; while we < model.chars.count && model.chars[we].isLetter { we += 1 }
+                var word = Array(model.chars[ws..<we])
+                let local = i - ws
+                if local >= 0 && local < word.count { word[local] = correct }
+                navigate(to: we)                                  // caret to the end of the word
+                emit(.noop, max(0.15, gaussian(0.5, 0.25)))       // found it
+                for _ in 0..<(we - ws) { emit(.backspace, max(0.03, gaussian(0.09, 0.04))) }  // delete the word
+                for c in word { emit(.ch(c), max(0.05, gaussian(0.12, 0.05))) }               // retype it correctly
             }
             emit(.noop, max(0.10, gaussian(0.35, 0.18)))   // short revision pause
         }

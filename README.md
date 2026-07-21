@@ -65,12 +65,12 @@ then goes back to edit. Here's a real keystroke trace from the planner (`→`/`�
 `·` = pause):
 
 ```
-The fat sat on the mat, and it was y⌫happy. thd⌫e end.·[←×7]·⌫T·[←×38]·⌫c·[→×45]
+The cat sat on yhe mat, and it was happy. the end.·[←×5]·⌫⌫⌫The·[←×27]·⌫⌫⌫the·[→×32]
   → "The cat sat on the mat, and it was happy. The end."
 ```
 
-It typed "fat" (left wrong), fixed "happy" and "the" inline, and left "the end" lowercase. Then it
-re-read, arrowed back to capitalize "The," went further back to fix "cat," and returned to the end.
+It typed "yhe" for "the" and left "the end" lowercase in the draft. Then it re-read, went back to
+each spot, **deleted the whole word and retyped it** ("The", then "the"), and returned to the end.
 The final text always equals your input. I checked that across 7,200 randomized runs.
 
 ## Keyboard shortcuts
