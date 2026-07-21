@@ -158,8 +158,23 @@ final class TypingEngine {
 
 // MARK: - Custom views
 
+private let droppableExts: Set<String> = ["docx", "doc", "rtf", "rtfd", "txt", "text", "md", "markdown", "html", "htm"]
+func droppedDocURL(_ s: NSDraggingInfo) -> URL? {
+    let opts: [NSPasteboard.ReadingOptionKey: Any] = [.urlReadingFileURLsOnly: true]
+    guard let urls = s.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: opts) as? [URL] else { return nil }
+    return urls.first { droppableExts.contains($0.pathExtension.lowercased()) }
+}
+
 final class GradientView: NSView {
+    var onFileDropped: ((URL) -> Void)?
+    override init(frame: NSRect) { super.init(frame: frame); registerForDraggedTypes([.fileURL]) }
+    required init?(coder: NSCoder) { fatalError() }
     override func draw(_ r: NSRect) { NSGradient(starting: cBgBot, ending: cBgTop)?.draw(in: bounds, angle: 90) }
+    override func draggingEntered(_ s: NSDraggingInfo) -> NSDragOperation { droppedDocURL(s) != nil ? .copy : [] }
+    override func performDragOperation(_ s: NSDraggingInfo) -> Bool {
+        if let u = droppedDocURL(s) { onFileDropped?(u); return true }
+        return false
+    }
 }
 
 func makeSurface(fill: NSColor, border: NSColor, radius: CGFloat) -> NSView {
@@ -176,6 +191,14 @@ func makeSurface(fill: NSColor, border: NSColor, radius: CGFloat) -> NSView {
 final class FocusTextView: NSTextView {
     var placeholder = ""
     var onFocusChange: ((Bool) -> Void)?
+    var onFileDropped: ((URL) -> Void)?
+    override func draggingEntered(_ s: NSDraggingInfo) -> NSDragOperation {
+        droppedDocURL(s) != nil ? .copy : super.draggingEntered(s)
+    }
+    override func performDragOperation(_ s: NSDraggingInfo) -> Bool {
+        if let u = droppedDocURL(s) { onFileDropped?(u); return true }
+        return super.performDragOperation(s)
+    }
     override func becomeFirstResponder() -> Bool { let r = super.becomeFirstResponder(); onFocusChange?(true); return r }
     override func resignFirstResponder() -> Bool { let r = super.resignFirstResponder(); onFocusChange?(false); return r }
     override func draw(_ dirtyRect: NSRect) {
@@ -289,8 +312,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var maxHumanMode = false
     var globalMonitor: Any?, localMonitor: Any?
 
-    let fullSize = NSSize(width: 600, height: 804)
-    let compactSize = NSSize(width: 470, height: 392)
+    let fullSize = NSSize(width: 560, height: 700)
+    let compactSize = NSSize(width: 460, height: 372)
 
     func applicationDidFinishLaunching(_ n: Notification) {
         buildMenu(); buildWindow(); installEscMonitors()
@@ -314,28 +337,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let bg = GradientView(frame: rect)
         bg.autoresizingMask = [.width, .height]
+        bg.onFileDropped = { [weak self] in self?.loadDroppedFile($0) }
         window.contentView = bg
 
         let stack = NSStackView()
-        stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 13
+        stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 10
         stack.translatesAutoresizingMaskIntoConstraints = false
         bg.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: bg.leadingAnchor, constant: 28),
-            stack.trailingAnchor.constraint(equalTo: bg.trailingAnchor, constant: -28),
-            stack.topAnchor.constraint(equalTo: bg.topAnchor, constant: 42),
-            stack.bottomAnchor.constraint(equalTo: bg.bottomAnchor, constant: -22),
+            stack.leadingAnchor.constraint(equalTo: bg.leadingAnchor, constant: 26),
+            stack.trailingAnchor.constraint(equalTo: bg.trailingAnchor, constant: -26),
+            stack.topAnchor.constraint(equalTo: bg.topAnchor, constant: 34),
+            stack.bottomAnchor.constraint(equalTo: bg.bottomAnchor, constant: -16),
         ])
         func full(_ v: NSView) { v.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true }
 
         // Header
         let title = NSTextField(labelWithString: "DripWriter")
-        title.font = .systemFont(ofSize: 28, weight: .bold); title.textColor = cText
+        title.font = .systemFont(ofSize: 23, weight: .bold); title.textColor = cText
         stack.addArrangedSubview(title)
 
         subtitleLabel = NSTextField(wrappingLabelWithString:
-            "Drips text into any field with human, variable-speed typing — drifting rhythm, pauses, and self-corrected typos. Press ESC to stop.")
-        subtitleLabel.font = .systemFont(ofSize: 12.5); subtitleLabel.textColor = cMuted
+            "Types into any field like a person. Drag in a Word doc (.docx) or paste text, then Start. ESC stops.")
+        subtitleLabel.font = .systemFont(ofSize: 12); subtitleLabel.textColor = cMuted
         stack.addArrangedSubview(subtitleLabel); full(subtitleLabel)
 
         // Editor header row: label + Compact + Humanize
@@ -372,7 +396,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         tv.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
         tv.textContainerInset = NSSize(width: 12, height: 12)
         tv.selectedTextAttributes = [.backgroundColor: cBlue.withAlphaComponent(0.35), .foregroundColor: NSColor.white]
-        tv.placeholder = "Paste or type the text you want dripped in…"
+        tv.placeholder = "Paste text, or drag a Word doc / .txt file in here…"
+        tv.registerForDraggedTypes([.fileURL])
+        tv.onFileDropped = { [weak self] in self?.loadDroppedFile($0) }
         tv.onFocusChange = { [weak self] focused in
             self?.editorScroll.layer?.borderColor = (focused ? cBlue : cBorderHi).cgColor
             self?.editorScroll.layer?.borderWidth = focused ? 2 : 1.5
@@ -381,20 +407,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         textView = tv
         editorScroll.setContentHuggingPriority(.defaultLow, for: .vertical)
         stack.addArrangedSubview(editorScroll); full(editorScroll)
-        editorScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 108).isActive = true
+        editorScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 90).isActive = true
 
         // Controls panel
         controlsPanel = makeSurface(fill: cSurface, border: cBorder, radius: 14)
         stack.addArrangedSubview(controlsPanel); full(controlsPanel)
         let controls = NSStackView()
-        controls.orientation = .vertical; controls.alignment = .leading; controls.spacing = 11
+        controls.orientation = .vertical; controls.alignment = .leading; controls.spacing = 9
         controls.translatesAutoresizingMaskIntoConstraints = false
         controlsPanel.addSubview(controls)
         NSLayoutConstraint.activate([
             controls.leadingAnchor.constraint(equalTo: controlsPanel.leadingAnchor, constant: 16),
             controls.trailingAnchor.constraint(equalTo: controlsPanel.trailingAnchor, constant: -16),
-            controls.topAnchor.constraint(equalTo: controlsPanel.topAnchor, constant: 14),
-            controls.bottomAnchor.constraint(equalTo: controlsPanel.bottomAnchor, constant: -14),
+            controls.topAnchor.constraint(equalTo: controlsPanel.topAnchor, constant: 12),
+            controls.bottomAnchor.constraint(equalTo: controlsPanel.bottomAnchor, constant: -12),
         ])
         func pFull(_ v: NSView) { v.widthAnchor.constraint(equalTo: controls.widthAnchor).isActive = true }
 
@@ -445,7 +471,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startButton = FancyButton("Start typing", kind: .primary)
         startButton.target = self; startButton.action = #selector(startTapped); startButton.keyEquivalent = "\r"
         stack.addArrangedSubview(startButton); full(startButton)
-        startButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        startButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         progress = NSProgressIndicator()
         progress.isIndeterminate = false; progress.minValue = 0; progress.maxValue = 100; progress.doubleValue = 0
@@ -610,6 +636,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     func setStatus(_ s: String) { statusLabel.stringValue = s }
+
+    // MARK: drag-and-drop document loading
+    func loadDroppedFile(_ url: URL) {
+        let ext = url.pathExtension.lowercased()
+        var text = ""
+        if ["txt", "text", "md", "markdown"].contains(ext) {
+            text = (try? String(contentsOf: url, encoding: .utf8))
+                ?? (try? String(contentsOf: url, encoding: .isoLatin1)) ?? ""
+        } else {
+            text = extractText(from: url)   // .docx / .doc / .rtf / .html via textutil
+        }
+        if text.isEmpty { setStatus("Couldn't read \(url.lastPathComponent)."); return }
+        if let ts = textView.textStorage {
+            let full = NSRange(location: 0, length: ts.length)
+            if textView.shouldChangeText(in: full, replacementString: text) {
+                ts.replaceCharacters(in: full, with: text); textView.didChangeText()
+            }
+        } else { textView.string = text }
+        NSApp.activate(ignoringOtherApps: true)
+        setStatus("Loaded \(url.lastPathComponent): \(text.count) chars. Text & layout kept; visual styling isn't typed.")
+    }
+    private func extractText(from url: URL) -> String {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/textutil")
+        p.arguments = ["-convert", "txt", "-stdout", url.path]
+        let out = Pipe(); p.standardOutput = out; p.standardError = Pipe()
+        do { try p.run() } catch { return "" }
+        let data = out.fileHandleForReading.readDataToEndOfFile()
+        p.waitUntilExit()
+        return String(data: data, encoding: .utf8) ?? ""
+    }
 
     func installEscMonitors() {
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] e in

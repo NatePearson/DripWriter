@@ -43,6 +43,9 @@ One native AppKit app. No Python, no runtime, no dependencies.
 - **✨ Humanize button.** An offline, rule-based port of the deterministic half of
   [blader/humanizer](https://github.com/blader/humanizer): dashes to commas, filler and hedging cuts,
   copula fixes, AI-vocab swaps, chatbot-artifact removal, curly-quote/emoji/bold cleanup.
+- **Drag in a document.** Drop a `.docx`, `.doc`, `.rtf`, `.txt`, or `.md` onto the window and its
+  text loads with paragraphs and lists intact. (It types plain text, so fonts, bold, and colors
+  aren't reproduced — the words and layout are.)
 - **Compact mode.** Collapse to a tiny typer that stays out of the way.
 - **Keyboard shortcuts**, a blue/black OLED-dark UI, and **ESC** to stop instantly.
 
